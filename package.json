@@ -1,0 +1,29 @@
+{
+  "name": "deploy-portainer",
+  "version": "0.1.0",
+  "description": "Tool to deploy a docker project to portainer from the cli.",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm pack"
+  },
+  "bin": {
+    "deploy-portainer": "bin/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaisnb/deploy-portainer.git"
+  },
+  "keywords": [
+    "deploy",
+    "portainer",
+    "docker"
+  ],
+  "author": "Kai Schönberger",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "chalk": "^4.0.0",
+    "read": "^1.0.7",
+    "tar": "^6.0.2"
+  }
+}
