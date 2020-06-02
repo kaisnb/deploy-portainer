@@ -25,8 +25,8 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
   const options = JSON.parse(configFile);
 
   // Creating API Client
-  const path = options.portainerBaseUrl | "api/";
-  const port = options.portainerPort | 9000;
+  const path = options.portainerBaseUrl || "api/";
+  const port = options.portainerPort || 9000;
   const axiosConf = {
     baseURL: `http://${options.portainerHost}:${port}/${path}`,
   };
@@ -49,14 +49,21 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
   // Set jwt token as default authorization header
   httpClient.defaults.headers.common["Authorization"] = loginResp.data.jwt;
 
-  // Determine our local endpoint
+  // Determine docker endpoint to use
+  const endpointName = options.endpointName || 'local';
   const listEndpointsResp = await httpClient.get("endpoints");
-  const endpointId = listEndpointsResp.data.find(
-    (e) => e.Name === options.endpointName
-  ).Id;
-  success(
-    `Successfully found endpoint named ${options.endpointName} with ID ${endpointId}.`
+  const endpoint = listEndpointsResp.data.find(
+    (e) => e.Name === endpointName
   );
+  let endpointId = null;
+  if (endpoint) {
+    endpointId = endpoint.Id;
+    success(
+      `Successfully found endpoint named ${endpointName} with ID ${endpointId}.`
+    );
+  } else {
+    throw new Error(`Endpoint ${endpointName} not found.`);
+  }
 
   // Gibt an ob altes Image mit gleichem Namen einfach ueberschrieben werden soll.
   // Im Entwicklungsbetrieb lassen wir dies zu aber im Produktiv Modus verhindern wird
@@ -67,7 +74,7 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
   if (fs.existsSync(pJsonPath)) {
     const pjson = JSON.parse(fs.readFileSync(pJsonPath));
     pJsonName = pjson.name;
-    const imageName = options.imageName | pJsonName;
+    const imageName = options.imageName || pJsonName;
     imageTag = imageName + ":" + pjson.version;
   } else {
     imageTag = options.imageName + ":" + options.imageVersion;
@@ -144,7 +151,7 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
 
   // Build image remotely
   info(`Start building image ${imageTag} remotely.`);
-  const dockerfilePath = options.dockerfile | 'Dockerfile';
+  const dockerfilePath = options.dockerfile || 'Dockerfile';
   const buildImageUrl = `endpoints/${endpointId}/docker/build?dockerfile=${dockerfilePath}&t=${imageTag}`;
   await httpClient.post(buildImageUrl, buildCtxTar, {
     headers: { "Content-Type": "application/x-tar" },
@@ -161,7 +168,7 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
   const listContainersResp = await httpClient.get(
     `endpoints/${endpointId}/docker/containers/json?all=1`
   );
-  const containerName = options.containerName | pJsonName;
+  const containerName = options.containerName || pJsonName;
   const oldContainer = listContainersResp.data.find((container) =>
     container.Names.some((name) => name === "/" + containerName)
   );
@@ -206,5 +213,5 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
   await httpClient.post(startContainerUrl);
   success(`Successfully started container with Id ${newContainerId}.`);
 })().catch((e) => {
-  error("Error: %o", e);
+  error(e);
 });
