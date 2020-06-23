@@ -154,6 +154,8 @@ const error = (...arguments) => console.log(chalk.bgRed(...arguments));
   const dockerfilePath = options.dockerfile || 'Dockerfile';
   const buildImageUrl = `endpoints/${endpointId}/docker/build?dockerfile=${dockerfilePath}&t=${imageTag}`;
   await httpClient.post(buildImageUrl, buildCtxTar, {
+    maxContentLength: Infinity,
+    maxBodyLength: Infinity,
     headers: { "Content-Type": "application/x-tar" },
   });
   success(`Successfully build image ${imageTag} remotely.`);
