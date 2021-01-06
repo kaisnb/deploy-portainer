@@ -24,7 +24,7 @@
   "author": "Kai Schönberger",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "chalk": "^4.0.0",
     "read": "^1.0.7",
     "tar": "^6.0.2"
